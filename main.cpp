@@ -8,7 +8,6 @@ struct FCharacter
 	int X;		//4byte
 	int Y;		//4byte
 	char Shape; //1byte
-
 };
 FCharacter Player;
 FCharacter Monster;
