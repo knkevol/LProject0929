@@ -4,56 +4,139 @@
 
 using namespace std;
 
+enum ERenderScreenBuffer
+{
+	FrontBuffer = 0,
+	BackBuffer = 1
+};
+
+int CurrentBufferIndex = FrontBuffer;
+
 struct FCharacter
 {
-	int X;		//4byte
-	int Y;		//4byte
-	char Shape; //1byte
+	int X;			//4byte
+	int Y;			//4byte
+	string Shape;	//1byte
 };
 FCharacter Player;
 FCharacter Monster;
 
 FCharacter Characters[2]; //Struct Array
 
-void RenderCharacter(const FCharacter* Indata)
-{
-		COORD Cur;
-		Cur.X = (short)Indata->X;
-		Cur.Y = (short)Indata->Y;
-		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), Cur);
-		cout << Indata->Shape;
-}
+HANDLE FrontBufferHandle;
+HANDLE BackBufferHandle;
 
-void Render()
-{
-	for (int i = 0; i < 2; i++)
-	{
-		RenderCharacter(&Characters[i]);
-	}
-}
-
-void Init()
-{
-	srand((unsigned int)time(nullptr));
-
-	//Load > File Inout
-	Characters[0].X = 1;
-	Characters[0].Y = 1;
-	Characters[0].Shape = 'P';
-
-	Characters[1].X = 10;
-	Characters[1].Y = 10;
-	Characters[1].Shape = 'M';
-}
 int KeyCode = 0;
+
 void Input()
 {
 	KeyCode = _getch();
 }
 
+
+void RenderCharacter(const FCharacter* InData)
+{
+		COORD Cur;
+		Cur.X = (short)InData->X;
+		Cur.Y = (short)InData->Y;
+
+		if (CurrentBufferIndex == FrontBuffer)
+		{
+			SetConsoleCursorPosition(FrontBufferHandle, Cur);
+			WriteConsole(FrontBufferHandle, InData->Shape.c_str(), 1, NULL, NULL);
+			
+		}
+		else
+		{
+			SetConsoleCursorPosition(BackBufferHandle, Cur);
+			WriteConsole(BackBufferHandle, InData->Shape.c_str(), 1, NULL, NULL);
+		}
+		
+		//cout << Indata->Shape; == WriteConsole
+}
+
+// == system("cls")
+void Clear()
+{
+	COORD coordScreen = { 0, 0 };    // home for the cursor
+	DWORD cCharsWritten;
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	DWORD dwConSize;
+
+	if (CurrentBufferIndex == FrontBuffer)
+	{
+		//Screen Buffer Information
+		GetConsoleScreenBufferInfo(FrontBufferHandle, &csbi);
+		dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
+		FillConsoleOutputCharacter(FrontBufferHandle,
+			(TCHAR)' ',
+			dwConSize,
+			coordScreen,
+			&cCharsWritten);
+	}
+	else
+	{
+		GetConsoleScreenBufferInfo(BackBufferHandle, &csbi);
+		dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
+		FillConsoleOutputCharacter(BackBufferHandle,
+			(TCHAR)' ',
+			dwConSize,
+			coordScreen,
+			&cCharsWritten);
+	}
+}
+
+//Draw
+void Presect() 
+{
+	if (CurrentBufferIndex == FrontBuffer)
+	{
+		SetConsoleActiveScreenBuffer(FrontBufferHandle); //Draw Screen
+	}
+	else
+	{
+		SetConsoleActiveScreenBuffer(BackBufferHandle); //Draw Screen
+	}
+	CurrentBufferIndex++;
+	CurrentBufferIndex = CurrentBufferIndex % 2; // 0~1
+}
+
+void Render()
+{
+	Clear();
+
+	for (int i = 0; i < 2; i++)
+	{
+		RenderCharacter(&Characters[i]);
+	}
+
+	Presect(); //Replace
+}
+
+
+void Init()
+{
+	//0
+	FrontBufferHandle = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, nullptr, CONSOLE_TEXTMODE_BUFFER, NULL);
+
+	//1
+	BackBufferHandle = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, nullptr, CONSOLE_TEXTMODE_BUFFER, NULL);
+
+
+	srand((unsigned int)time(nullptr));
+
+	//Load > File Inout
+	Characters[0].X = 1;
+	Characters[0].Y = 1;
+	Characters[0].Shape = "P";
+
+	Characters[1].X = 10;
+	Characters[1].Y = 10;
+	Characters[1].Shape = "M";
+}
+
 void MovePlayer()
 {
-	bool bIsPlaying = true;
 	//Design Pattern
 	switch (KeyCode)
 	{
@@ -101,7 +184,6 @@ void Tick()
 {
 	MovePlayer();
 	MoveMonster();
-	system("cls");
 }
 
 int main()
