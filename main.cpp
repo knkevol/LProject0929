@@ -12,6 +12,8 @@ enum ERenderScreenBuffer
 
 int CurrentBufferIndex = FrontBuffer;
 
+HANDLE ScreenBuffers[2];
+
 struct FCharacter
 {
 	int X;			//4byte
@@ -22,9 +24,6 @@ FCharacter Player;
 FCharacter Monster;
 
 FCharacter Characters[2]; //Struct Array
-
-HANDLE FrontBufferHandle;
-HANDLE BackBufferHandle;
 
 int KeyCode = 0;
 
@@ -40,18 +39,8 @@ void RenderCharacter(const FCharacter* InData)
 		Cur.X = (short)InData->X;
 		Cur.Y = (short)InData->Y;
 
-		if (CurrentBufferIndex == FrontBuffer)
-		{
-			SetConsoleCursorPosition(FrontBufferHandle, Cur);
-			WriteConsole(FrontBufferHandle, InData->Shape.c_str(), 1, NULL, NULL);
-			
-		}
-		else
-		{
-			SetConsoleCursorPosition(BackBufferHandle, Cur);
-			WriteConsole(BackBufferHandle, InData->Shape.c_str(), 1, NULL, NULL);
-		}
-		
+		SetConsoleCursorPosition(ScreenBuffers[CurrentBufferIndex], Cur);
+		WriteConsole(ScreenBuffers[CurrentBufferIndex], InData->Shape.c_str(), 1, NULL, NULL);
 		//cout << Indata->Shape; == WriteConsole
 }
 
@@ -63,40 +52,20 @@ void Clear()
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	DWORD dwConSize;
 
-	if (CurrentBufferIndex == FrontBuffer)
-	{
-		//Screen Buffer Information
-		GetConsoleScreenBufferInfo(FrontBufferHandle, &csbi);
-		dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
-		FillConsoleOutputCharacter(FrontBufferHandle,
-			(TCHAR)' ',
-			dwConSize,
-			coordScreen,
-			&cCharsWritten);
-	}
-	else
-	{
-		GetConsoleScreenBufferInfo(BackBufferHandle, &csbi);
-		dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
-		FillConsoleOutputCharacter(BackBufferHandle,
-			(TCHAR)' ',
-			dwConSize,
-			coordScreen,
-			&cCharsWritten);
-	}
+	//Screen Buffer Information
+	GetConsoleScreenBufferInfo(ScreenBuffers[CurrentBufferIndex], &csbi);
+	dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
+	FillConsoleOutputCharacter(ScreenBuffers[CurrentBufferIndex],
+		(TCHAR)' ',
+		dwConSize,
+		coordScreen,
+		&cCharsWritten);
 }
 
 //Draw
 void Presect() 
 {
-	if (CurrentBufferIndex == FrontBuffer)
-	{
-		SetConsoleActiveScreenBuffer(FrontBufferHandle); //Draw Screen
-	}
-	else
-	{
-		SetConsoleActiveScreenBuffer(BackBufferHandle); //Draw Screen
-	}
+	SetConsoleActiveScreenBuffer(ScreenBuffers[CurrentBufferIndex]); //Draw Screen
 	CurrentBufferIndex++;
 	CurrentBufferIndex = CurrentBufferIndex % 2; // 0~1
 }
@@ -117,10 +86,10 @@ void Render()
 void Init()
 {
 	//0
-	FrontBufferHandle = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, nullptr, CONSOLE_TEXTMODE_BUFFER, NULL);
+	ScreenBuffers[0] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, nullptr, CONSOLE_TEXTMODE_BUFFER, NULL);
 
 	//1
-	BackBufferHandle = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, nullptr, CONSOLE_TEXTMODE_BUFFER, NULL);
+	ScreenBuffers[1] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, nullptr, CONSOLE_TEXTMODE_BUFFER, NULL);
 
 
 	srand((unsigned int)time(nullptr));
