@@ -15,7 +15,7 @@ FCharacter Monster;
 
 FCharacter Characters[2]; //Struct Array
 
-void RenderCharacter(FCharacter* Indata)
+void RenderCharacter(const FCharacter* Indata)
 {
 		COORD Cur;
 		Cur.X = (short)Indata->X;
