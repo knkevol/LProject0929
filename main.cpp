@@ -18,8 +18,8 @@ FCharacter Characters[2]; //구조체 배열
 void RenderCharacter(FCharacter Indata)
 {
 		COORD Cur;
-		Cur.X = (SHORT)Indata.X;
-		Cur.Y = (SHORT)Indata.Y;
+		Cur.X = (short)Indata.X;
+		Cur.Y = (short)Indata.Y;
 		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), Cur);
 		cout << Indata.Shape;
 }
@@ -34,6 +34,8 @@ void Render()
 
 void Init()
 {
+	srand((unsigned int)time(nullptr));
+
 	//Load > 파일입출력으로 제작
 	Characters[0].X = 1;
 	Characters[0].Y = 1;
@@ -52,38 +54,54 @@ void Input()
 void MovePlayer()
 {
 	bool bIsPlaying = true;
-	if (KeyCode == 'w')
+	//디자인 패턴
+	switch (KeyCode)
 	{
+	case 'w': //Up
 		Characters[0].Y--;
-	}
-	else if (KeyCode == 's')
-	{
+		break;
+	case 's': //Down
 		Characters[0].Y++;
-	}
-	else if (KeyCode == 'a')
-	{
+		break;
+	case 'a': //Left
 		Characters[0].X--;
-	}
-	else if (KeyCode == 'd')
-	{
+		break;
+	case 'd': //Right
 		Characters[0].X++;
+		break;
+	default: //Error
+		break;
 	}
-	else if (KeyCode == 'q')
-	{
-		bIsPlaying = false;
-	}
-	system("cls");
 }
 
 void MoveMonster()
-{
+{ //No Input
+	int Direction = rand() % 4;
 
+	switch (Direction)
+	{
+	case 0: //Up
+		Characters[1].Y--;
+		break;
+	case 1: //Down
+		Characters[1].Y++;
+		break;
+	case 2: //Left
+		Characters[1].X--;
+		break;
+	case 3: //Right
+		Characters[1].X++;
+		break;
+	default: //Error
+		break;
+	}
 }
 
 void Tick()
 {
 	MovePlayer();
 	MoveMonster();
+	system("cls");
 }
 
 int main()
