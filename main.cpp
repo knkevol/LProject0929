@@ -13,22 +13,22 @@ struct FCharacter
 FCharacter Player;
 FCharacter Monster;
 
-FCharacter Characters[2]; //구조체 배열
+FCharacter Characters[2]; //Struct Array
 
-void RenderCharacter(FCharacter Indata)
+void RenderCharacter(FCharacter* Indata)
 {
 		COORD Cur;
-		Cur.X = (short)Indata.X;
-		Cur.Y = (short)Indata.Y;
+		Cur.X = (short)Indata->X;
+		Cur.Y = (short)Indata->Y;
 		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), Cur);
-		cout << Indata.Shape;
+		cout << Indata->Shape;
 }
 
 void Render()
 {
 	for (int i = 0; i < 2; i++)
 	{
-		RenderCharacter(Characters[i]);
+		RenderCharacter(&Characters[i]);
 	}
 }
 
@@ -36,7 +36,7 @@ void Init()
 {
 	srand((unsigned int)time(nullptr));
 
-	//Load > 파일입출력으로 제작
+	//Load > File Inout
 	Characters[0].X = 1;
 	Characters[0].Y = 1;
 	Characters[0].Shape = 'P';
@@ -54,7 +54,7 @@ void Input()
 void MovePlayer()
 {
 	bool bIsPlaying = true;
-	//디자인 패턴
+	//Design Pattern
 	switch (KeyCode)
 	{
 	case 'w': //Up
